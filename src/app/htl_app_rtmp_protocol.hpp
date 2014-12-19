@@ -69,7 +69,7 @@ extern "C"{
 
 // typedefs
 typedef int srs_bool;
-
+extern double g_duration;
 /*************************************************************
 **************************************************************
 * srs-librtmp version
@@ -481,13 +481,19 @@ extern int srs_flv_read_header(srs_flv_t flv, char header[9]);
 extern int srs_flv_read_tag_header(srs_flv_t flv, 
     char* ptype, int32_t* pdata_size, u_int32_t* ptime
 );
+
+/*
+* Reset flv file handler to pos
+*/
+extern void srs_reset_pos(srs_flv_t flv, u_int32_t pos);
+
 /**
 * read the tag data. drop the 4bytes previous tag size 
 * @param data, the data to read, user alloc and free it.
 * @param size, the size of data to read, get by srs_flv_read_tag_header().
 * @remark, srs will ignore and drop the 4bytes previous tag size.
 */
-extern int srs_flv_read_tag_data(srs_flv_t flv, char* data, int32_t size);
+extern int srs_flv_read_tag_data(srs_flv_t flv, char* data, int32_t size, unsigned char type);
 /**
 * write the flv header. 9bytes header. 
 * @param header, @see E.2 The FLV header, flv_v10_1.pdf in SRS doc.
