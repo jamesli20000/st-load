@@ -1,6 +1,7 @@
 #ifndef HTL_APP_RTMP_METADATA_TRICKER_HPP
 #define HTL_APP_RTMP_METADATA_TRICKER_HPP
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include "htl_app_rtmp_protocol.hpp"
