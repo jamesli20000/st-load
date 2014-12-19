@@ -23,7 +23,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <htl_stdinc.hpp>
 #include <htl_app_rtmp_protocol.hpp>
-
+#include <htl_app_rtmp_metadata_tricker.hpp>
 
 
 
@@ -7920,6 +7920,16 @@ int SrsFlvDecoder::read_header(char header[9])
     return ret;
 }
 
+int SrsFlvDecoder::getPosition()
+{
+    return _fs->tellg();
+}
+
+void SrsFlvDecoder::seekPosition(int pos)
+{
+    _fs->lseek(pos);
+}
+
 int SrsFlvDecoder::read_tag_header(char* ptype, int32_t* pdata_size, u_int32_t* ptime)
 {
     int ret = ERROR_SUCCESS;
@@ -7974,6 +7984,10 @@ int SrsFlvDecoder::read_tag_data(char* data, int32_t size)
         return ret;
     }
     
+    if(ptype == 18)
+    {
+        ResetDuration4Live((unsigned char*)data, size);
+    }
     return ret;
 
 }
@@ -8054,7 +8068,7 @@ int SrsFlvVodStreamDecoder::read_sequence_header_summary(int64_t* pstart, int* p
     
     // 11bytes tag header
     static char tag_header[] = {
-        (char)0x00, // TagType UB [5], 9 = video, 8 = audio, 18 = script data
+        (char)0x00, // TagType UB [5], 9 = video, 8 = audio, 18 = script dataread_tag_data
         (char)0x00, (char)0x00, (char)0x00, // DataSize UI24 Length of the message.
         (char)0x00, (char)0x00, (char)0x00, // Timestamp UI24 Time in milliseconds at which the data in this tag applies.
         (char)0x00, // TimestampExtended UI8
@@ -19287,7 +19301,13 @@ void srs_flv_close(srs_flv_t flv)
     srs_freep(context);
 }
 
-int srs_flv_read_header(srs_flv_t flv, char header[9])
+void srs_reset_pos(srs_flv_t flv, u_int32_t pos)
+{
+    FlvContext* context = (FlvContext*)flv;
+    context->dec.seekPosition(pos);
+}
+
+int srs_flv_read_header(srs_flv_t flv, char header[9], u_int32_t*pos)
 {
     int ret = ERROR_SUCCESS;
     
@@ -19305,7 +19325,7 @@ int srs_flv_read_header(srs_flv_t flv, char header[9])
     if ((ret = context->dec.read_previous_tag_size(ts)) != ERROR_SUCCESS) {
         return ret;
     }
-    
+    *pos = context->dec.getPosition();
     return ret;
 }
 
