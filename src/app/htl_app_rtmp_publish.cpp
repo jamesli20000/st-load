@@ -125,9 +125,13 @@ int StRtmpPublishClient::PublishStram(){
 
 int StRtmpPublishClient::PublishAV(srs_flv_t flv){
     int ret = ERROR_SUCCESS;
-    
+    u_int32_t pretimestamp = 0;
+    u_int32_t g_timestamp = 0;
+    u_int32_t g_pos4firstpkt = 0;
     char header[9];
-    if ((ret = srs_flv_read_header(flv, header)) != ERROR_SUCCESS) {
+#define ERROR_SYSTEM_FILE_EOF               1046
+
+    if ((ret = srs_flv_read_header(flv, header, &g_pos4firstpkt)) != ERROR_SUCCESS) {
         Error("read flv header failed. ret=%d", ret);
         return ret;
     }
@@ -140,28 +144,53 @@ int StRtmpPublishClient::PublishAV(srs_flv_t flv){
         int32_t size;
         
         if ((ret = srs_flv_read_tag_header(flv, &type, &size, &timestamp)) != ERROR_SUCCESS) {
-            return ret;
+            if( ret == ERROR_SYSTEM_FILE_EOF && g_timestamp != 0 )
+            {
+                u_int32_t duration = (u_int32_t)(g_duration*1000);
+                srs_reset_pos(flv, g_pos4firstpkt);
+                Info("reset source flle position, and file duration is:%d", duration);
+                g_timestamp += duration - pretimestamp;
+                pretimestamp = 0;
+                continue;
+            }else
+            {
+                Info("srs_flv_read_tag_header failed by other reason"); 
+                return ret;
+            }
+
         }
-        
+        g_timestamp += timestamp - pretimestamp;
         char* data = new char[size];
-        if ((ret = srs_flv_read_tag_data(flv, data, size)) != ERROR_SUCCESS) {
+        if ((ret = srs_flv_read_tag_data(flv, data, size, type)) != ERROR_SUCCESS) {
+			Info("srs_flv_read_tag_data failed by other reason");
             delete data;
-            return ret;
+            if( ret == ERROR_SYSTEM_FILE_EOF && g_timestamp != 0 )
+            {
+                u_int32_t duration = (u_int32_t)(g_duration*1000);
+                srs_reset_pos(flv, g_pos4firstpkt);
+                Info("reset source flle position, and file duration is:%d", duration);
+                g_timestamp += duration - pretimestamp;
+                pretimestamp = 0;
+            }else
+            {
+                Info("srs_flv_read_tag_data failed by other reason"); 
+                return ret;
+            }
         }
         
-        if ((ret = srs_rtmp_write_packet(srs, type, timestamp, data, size)) != ERROR_SUCCESS) {
+        if ((ret = srs_rtmp_write_packet(srs, type, g_timestamp, data, size)) != ERROR_SUCCESS) {
             return ret;
         }
-        
-        Info("send message type=%d, size=%d, time=%d", type, size, timestamp);
+        pretimestamp = timestamp;
+        Info("send message type=%d, size=%d, time=%d", type, size, g_timestamp);
         
         if (re <= 0) {
-            re = timestamp;
+            re = g_timestamp;
         }
         
-        if (timestamp - re > 300) {
-            st_usleep((timestamp - re) * 1000);
-            re = timestamp;
+        if (g_timestamp - re > 300) {
+            st_usleep((g_timestamp - re) * 1000);
+            re = g_timestamp;
         }
     }
     
