@@ -464,7 +464,7 @@ extern void srs_flv_close(srs_flv_t flv);
 * @return 0, success; otherswise, failed.
 * @remark, drop the 4bytes zero previous tag size.
 */
-extern int srs_flv_read_header(srs_flv_t flv, char header[9]);
+extern int srs_flv_read_header(srs_flv_t flv, char header[9], u_int32_t*pos);
 /**
 * read the flv tag header, 1bytes tag, 3bytes data_size, 
 * 4bytes time, 3bytes stream id. 
@@ -493,7 +493,7 @@ extern void srs_reset_pos(srs_flv_t flv, u_int32_t pos);
 * @param size, the size of data to read, get by srs_flv_read_tag_header().
 * @remark, srs will ignore and drop the 4bytes previous tag size.
 */
-extern int srs_flv_read_tag_data(srs_flv_t flv, char* data, int32_t size, unsigned char type);
+extern int srs_flv_read_tag_data(srs_flv_t flv, char* data, int32_t size, char type);
 /**
 * write the flv header. 9bytes header. 
 * @param header, @see E.2 The FLV header, flv_v10_1.pdf in SRS doc.

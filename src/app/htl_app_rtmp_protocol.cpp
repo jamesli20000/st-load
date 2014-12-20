@@ -1114,12 +1114,24 @@ public:
     * read the tag data.
     * @remark assert data not NULL.
     */
-    virtual int read_tag_data(char* data, int32_t size);
+	virtual int read_tag_data(char* data, int32_t size, char ptype);
+
     /**
     * read the 4bytes previous tag size.
     * @remark assert previous_tag_size not NULL.
     */
     virtual int read_previous_tag_size(char previous_tag_size[4]);
+	    
+    /**
+    * get current flv file handler position
+    */
+    virtual int getPosition();
+
+    /**
+    * seek flv file handler to position pos
+    */
+    virtual void seekPosition(int pos);
+
 };
 
 /**
@@ -7976,7 +7988,7 @@ int SrsFlvDecoder::read_tag_header(char* ptype, int32_t* pdata_size, u_int32_t* 
     return ret;
 }
 
-int SrsFlvDecoder::read_tag_data(char* data, int32_t size)
+int SrsFlvDecoder::read_tag_data(char* data, int32_t size, char ptype)
 {
     int ret = ERROR_SUCCESS;
 
@@ -19351,7 +19363,7 @@ int srs_flv_read_tag_header(srs_flv_t flv, char* ptype, int32_t* pdata_size, u_i
     return ret;
 }
 
-int srs_flv_read_tag_data(srs_flv_t flv, char* data, int32_t size)
+int srs_flv_read_tag_data(srs_flv_t flv, char* data, int32_t size, char type)
 {
     int ret = ERROR_SUCCESS;
     
@@ -19361,7 +19373,7 @@ int srs_flv_read_tag_data(srs_flv_t flv, char* data, int32_t size)
         return ERROR_SYSTEM_IO_INVALID;
     }
     
-    if ((ret = context->dec.read_tag_data(data, size)) != ERROR_SUCCESS) {
+    if ((ret = context->dec.read_tag_data(data, size, type)) != ERROR_SUCCESS) {
         return ret;
     }
     
