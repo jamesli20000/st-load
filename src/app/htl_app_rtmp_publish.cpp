@@ -35,6 +35,7 @@ using namespace std;
 
 #include <htl_app_rtmp_publish.hpp>
 #include <htl_app_rtmp_protocol.hpp>
+double g_duration=0;
 
 StRtmpPublishClient::StRtmpPublishClient(){
     stream_id = 0;
