@@ -8085,7 +8085,7 @@ int SrsFlvVodStreamDecoder::read_sequence_header_summary(int64_t* pstart, int* p
     
     // 11bytes tag header
     static char tag_header[] = {
-        (char)0x00, // TagType UB [5], 9 = video, 8 = audio, 18 = script dataread_tag_data
+        (char)0x00, // TagType UB [5], 9 = video, 8 = audio, 18 = script data
         (char)0x00, (char)0x00, (char)0x00, // DataSize UI24 Length of the message.
         (char)0x00, (char)0x00, (char)0x00, // Timestamp UI24 Time in milliseconds at which the data in this tag applies.
         (char)0x00, // TimestampExtended UI8
